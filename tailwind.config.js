@@ -1,0 +1,95 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: '#0050cb',
+          container: '#0066ff',
+          fixed: '#dae1ff',
+          'fixed-dim': '#b3c5ff',
+          'on-default': '#ffffff',
+          'on-container': '#f8f7ff',
+          'on-fixed': '#001849',
+          'on-fixed-variant': '#003fa4',
+        },
+        secondary: {
+          DEFAULT: '#3b6663',
+          container: '#bbe8e4',
+          fixed: '#beebe7',
+          'fixed-dim': '#a2cfcb',
+          'on-default': '#ffffff',
+          'on-container': '#3f6a67',
+          'on-fixed': '#00201e',
+          'on-fixed-variant': '#224e4b',
+        },
+        tertiary: {
+          DEFAULT: '#a33200',
+          container: '#cc4204',
+          fixed: '#ffdbd0',
+          'fixed-dim': '#ffb59d',
+          'on-default': '#ffffff',
+          'on-container': '#fff6f4',
+          'on-fixed': '#390c00',
+          'on-fixed-variant': '#832600',
+        },
+        surface: {
+          DEFAULT: '#faf8ff',
+          bright: '#faf8ff',
+          dim: '#d8d9e6',
+          'container-lowest': '#ffffff',
+          'container-low': '#f2f3ff',
+          'container': '#ecedfa',
+          'container-high': '#e6e7f4',
+          'container-highest': '#e1e2ee',
+          tint: '#0054d6',
+          variant: '#e1e2ee',
+        },
+        on: {
+          surface: '#191b24',
+          'surface-variant': '#424656',
+          background: '#191b24',
+          primary: '#ffffff',
+          secondary: '#ffffff',
+          tertiary: '#ffffff',
+        },
+        error: {
+          DEFAULT: '#ba1a1a',
+          container: '#ffdad6',
+          'on-default': '#ffffff',
+          'on-container': '#93000a',
+        },
+        outline: {
+          DEFAULT: '#727687',
+          variant: '#c2c6d8',
+        },
+      },
+      fontFamily: {
+        heading: ['Manrope', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        label: ['Inter', 'sans-serif'],
+      },
+      borderRadius: {
+        DEFAULT: '8px',
+        sm: '4px',
+        lg: '12px',
+        xl: '16px',
+        full: '9999px',
+      },
+      boxShadow: {
+        'soft': '0 4px 6px -1px rgba(25, 27, 36, 0.06), 0 2px 4px -1px rgba(25, 27, 36, 0.04)',
+        'elevated': '0 10px 15px -3px rgba(25, 27, 36, 0.06), 0 4px 6px -2px rgba(25, 27, 36, 0.04)',
+        'floating': '0 20px 25px -5px rgba(25, 27, 36, 0.1), 0 10px 10px -5px rgba(25, 27, 36, 0.04)',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+      },
+    },
+  },
+  plugins: [],
+}
