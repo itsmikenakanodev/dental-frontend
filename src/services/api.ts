@@ -12,8 +12,11 @@ const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) {
+  if (token && token.split('.').length === 3) {
     config.headers.Authorization = `Bearer ${token}`
+  } else if (token) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   }
   return config
 })
@@ -139,7 +142,15 @@ export const appointmentService = {
   },
 
   async createAppointment(data: CreateAppointmentRequest): Promise<Appointment> {
-    const response = await api.post<ApiResponse<Appointment>>('/appointments', null, { params: data })
+    const params: Record<string, string | number | undefined> = {
+      patientId: data.patientId,
+      dentistId: data.dentistId,
+      appointmentTime: data.appointmentTime.endsWith(':00') ? data.appointmentTime : `${data.appointmentTime}:00`,
+    }
+    if (data.durationMinutes) params.durationMinutes = data.durationMinutes
+    if (data.notes) params.notes = data.notes
+
+    const response = await api.post<ApiResponse<Appointment>>('/appointments', null, { params })
     if (response.data.data) {
       return response.data.data
     }
@@ -150,7 +161,15 @@ export const appointmentService = {
     newTime: string
     newNotes: string
   }>): Promise<Appointment> {
-    const response = await api.put<ApiResponse<Appointment>>(`/appointments/${id}`, null, { params: data })
+    const params: Record<string, string | undefined> = {}
+    if (data.newTime) {
+      params.newTime = data.newTime.endsWith(':00') ? data.newTime : `${data.newTime}:00`
+    }
+    if (data.newNotes !== undefined) {
+      params.newNotes = data.newNotes
+    }
+
+    const response = await api.put<ApiResponse<Appointment>>(`/appointments/${id}`, null, { params })
     if (response.data.data) {
       return response.data.data
     }
