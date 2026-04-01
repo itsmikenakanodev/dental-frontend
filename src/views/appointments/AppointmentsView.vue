@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppointmentStore } from '@/stores/appointment'
+import { useUserStore } from '@/stores/user'
+import { useToast } from '@/composables/useToast'
 import type { Appointment, CreateAppointmentRequest } from '@/types'
+import UserSelect from '@/components/common/UserSelect.vue'
 
 const store = useAppointmentStore()
+const userStore = useUserStore()
+const toast = useToast()
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -55,6 +60,26 @@ const filteredAppointments = computed(() => {
   )
 })
 
+// Helper to parse YYYY-MM-DD as local date (avoid UTC conversion)
+const parseLocalDate = (dateStr: string): Date => {
+  const parts = dateStr.split('-')
+  const y = parseInt(parts[0] || '0', 10)
+  const m = parseInt(parts[1] || '1', 10) - 1
+  const d = parseInt(parts[2] || '1', 10)
+  return new Date(y, m, d)
+}
+
+// Helper to format date as local datetime (YYYY-MM-DDTHH:mm:ss)
+const toLocalDateTime = (date: Date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  const s = String(date.getSeconds()).padStart(2, '0')
+  return `${y}-${m}-${d}T${h}:${min}:${s}`
+}
+
 // Watch date filter changes and fetch from API
 watch([dateFilterMode, filterDay, filterRangeStart, filterRangeEnd], () => {
   console.log('[DateFilter] Mode changed:', dateFilterMode.value)
@@ -63,19 +88,19 @@ watch([dateFilterMode, filterDay, filterRangeStart, filterRangeEnd], () => {
     console.log('[DateFilter] Fetching current month')
     store.fetchAppointments()
   } else if (dateFilterMode.value === 'DAY' && filterDay.value) {
-    const start = new Date(filterDay.value)
+    const start = parseLocalDate(filterDay.value)
     start.setHours(0, 0, 0, 0)
-    const end = new Date(filterDay.value)
-    end.setHours(23, 59, 59, 999)
-    console.log('[DateFilter] Day mode — start:', start.toISOString(), 'end:', end.toISOString())
-    store.fetchAppointments(start.toISOString(), end.toISOString())
+    const end = parseLocalDate(filterDay.value)
+    end.setHours(23, 59, 59, 0)
+    console.log('[DateFilter] Day mode — start:', toLocalDateTime(start), 'end:', toLocalDateTime(end))
+    store.fetchAppointments(toLocalDateTime(start), toLocalDateTime(end))
   } else if (dateFilterMode.value === 'RANGE' && filterRangeStart.value && filterRangeEnd.value) {
-    const start = new Date(filterRangeStart.value)
+    const start = parseLocalDate(filterRangeStart.value)
     start.setHours(0, 0, 0, 0)
-    const end = new Date(filterRangeEnd.value)
-    end.setHours(23, 59, 59, 999)
-    console.log('[DateFilter] Range mode — start:', start.toISOString(), 'end:', end.toISOString())
-    store.fetchAppointments(start.toISOString(), end.toISOString())
+    const end = parseLocalDate(filterRangeEnd.value)
+    end.setHours(23, 59, 59, 0)
+    console.log('[DateFilter] Range mode — start:', toLocalDateTime(start), 'end:', toLocalDateTime(end))
+    store.fetchAppointments(toLocalDateTime(start), toLocalDateTime(end))
   }
 })
 
@@ -88,6 +113,7 @@ const stats = computed(() => ({
 
 onMounted(() => {
   store.fetchAppointments()
+  userStore.fetchAllForAppointment()
 })
 
 const formatTime = (dateString: string) => {
@@ -137,26 +163,47 @@ const openCancelConfirm = (appointment: Appointment) => {
 
 const handleCreate = async () => {
   if (!newAppointment.value.patientId || !newAppointment.value.dentistId || !newAppointment.value.appointmentTime) {
+    toast.error('Por favor completa todos los campos')
     return
   }
-  await store.createAppointment(newAppointment.value)
-  showCreateModal.value = false
+  try {
+    await store.createAppointment(newAppointment.value)
+    toast.success('Turno creado correctamente')
+    showCreateModal.value = false
+  } catch (e) {
+    toast.error('Error al crear el turno')
+  }
 }
 
 const handleEdit = async () => {
   if (!selectedAppointment.value) return
-  await store.updateAppointment(selectedAppointment.value.appointmentId, editData.value)
-  showEditModal.value = false
+  try {
+    await store.updateAppointment(selectedAppointment.value.appointmentId, editData.value)
+    toast.success('Turno actualizado correctamente')
+    showEditModal.value = false
+  } catch (e) {
+    toast.error('Error al actualizar el turno')
+  }
 }
 
 const handleCancel = async () => {
   if (!selectedAppointment.value) return
-  await store.cancelAppointment(selectedAppointment.value.appointmentId)
-  showCancelConfirm.value = false
+  try {
+    await store.cancelAppointment(selectedAppointment.value.appointmentId)
+    toast.success('Turno cancelado correctamente')
+    showCancelConfirm.value = false
+  } catch (e) {
+    toast.error('Error al cancelar el turno')
+  }
 }
 
 const handleComplete = async (appointment: Appointment) => {
-  await store.completeAppointment(appointment.appointmentId)
+  try {
+    await store.completeAppointment(appointment.appointmentId)
+    toast.success('Turno completado correctamente')
+  } catch (e) {
+    toast.error('Error al completar el turno')
+  }
 }
 
 const closeModal = () => {
@@ -378,12 +425,22 @@ const closeModal = () => {
         </div>
         <div class="p-6 space-y-4">
           <div>
-            <label class="block text-sm font-medium text-on-surface mb-2">Paciente ID</label>
-            <input v-model="newAppointment.patientId" type="text" class="input" placeholder="UUID del paciente" />
+            <label class="block text-sm font-medium text-on-surface mb-2">Paciente</label>
+            <UserSelect 
+              v-model="newAppointment.patientId" 
+              role="PATIENT" 
+              placeholder="Seleccionar paciente"
+              required
+            />
           </div>
           <div>
-            <label class="block text-sm font-medium text-on-surface mb-2">Dentista ID</label>
-            <input v-model="newAppointment.dentistId" type="text" class="input" placeholder="UUID del dentista" />
+            <label class="block text-sm font-medium text-on-surface mb-2">Dentista</label>
+            <UserSelect 
+              v-model="newAppointment.dentistId" 
+              role="DENTIST" 
+              placeholder="Seleccionar dentista"
+              required
+            />
           </div>
           <div>
             <label class="block text-sm font-medium text-on-surface mb-2">Fecha y hora</label>

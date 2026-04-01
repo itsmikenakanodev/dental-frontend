@@ -58,8 +58,21 @@ export const authService = {
 }
 
 export const userService = {
-  async getUsers(): Promise<User[]> {
-    const response = await api.get<ApiResponse<User[]>>('/users')
+  async getUsers(params?: {
+    role?: string
+    isActive?: boolean
+  }): Promise<User[]> {
+    const response = await api.get<ApiResponse<User[]>>('/users', { params })
+    return response.data.data || []
+  },
+
+  async getPatients(): Promise<User[]> {
+    const response = await api.get<ApiResponse<User[]>>('/users', { params: { role: 'PATIENT' } })
+    return response.data.data || []
+  },
+
+  async getDentists(): Promise<User[]> {
+    const response = await api.get<ApiResponse<User[]>>('/users', { params: { role: 'DENTIST' } })
     return response.data.data || []
   },
 

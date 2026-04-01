@@ -36,8 +36,21 @@ export const useAppointmentStore = defineStore('appointment', () => {
       } else {
         const today = new Date()
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999)
-        appointments.value = await appointmentService.getAppointmentsByDateRange(startOfMonth.toISOString(), endOfMonth.toISOString())
+        startOfMonth.setHours(0, 0, 0, 0)
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 0)
+
+        // Format as local datetime to avoid UTC conversion
+        const toLocal = (d: Date) => {
+          const y = d.getFullYear()
+          const m = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          const h = String(d.getHours()).padStart(2, '0')
+          const min = String(d.getMinutes()).padStart(2, '0')
+          const s = String(d.getSeconds()).padStart(2, '0')
+          return `${y}-${m}-${day}T${h}:${min}:${s}`
+        }
+
+        appointments.value = await appointmentService.getAppointmentsByDateRange(toLocal(startOfMonth), toLocal(endOfMonth))
       }
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to load appointments'
