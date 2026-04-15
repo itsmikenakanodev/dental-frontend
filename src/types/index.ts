@@ -34,7 +34,9 @@ export interface Appointment {
   appointmentId: string
   tenantId: string
   patientId: string
+  patientName?: string      // Nombre completo del paciente (del backend)
   dentistId: string
+  dentistName?: string      // Nombre completo del dentista (del backend)
   appointmentTime: string
   durationMinutes: number
   status: AppointmentStatus
@@ -43,6 +45,7 @@ export interface Appointment {
   reminderAttempts: number
   createdAt: string
   updatedAt: string
+  // Deprecated: el backend ahora devuelve patientName/dentistName como strings
   patient?: User
   dentist?: User
 }

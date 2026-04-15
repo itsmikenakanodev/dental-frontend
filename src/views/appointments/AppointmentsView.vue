@@ -353,13 +353,12 @@ const closeModal = () => {
               </td>
               <td class="px-6 py-4">
                 <p class="font-medium text-on-surface">
-                  {{ appointment.patient?.firstName }} {{ appointment.patient?.lastName }}
+                  {{ appointment.patientName || 'Sin paciente' }}
                 </p>
-                <p class="text-sm text-on-surface-variant">{{ appointment.patient?.email }}</p>
               </td>
               <td class="px-6 py-4">
                 <p class="text-on-surface">
-                  {{ appointment.dentist?.firstName }} {{ appointment.dentist?.lastName }}
+                  {{ appointment.dentistName || 'Sin dentista' }}
                 </p>
               </td>
               <td class="px-6 py-4">
