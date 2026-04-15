@@ -30,10 +30,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await authService.login(credentials)
-      token.value = response.access_token
+      
+      token.value = response.accessToken
       user.value = response.user
 
-      localStorage.setItem('token', response.access_token)
+      localStorage.setItem('token', response.accessToken)
       localStorage.setItem('user', JSON.stringify(response.user))
 
       return response

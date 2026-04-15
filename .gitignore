@@ -35,5 +35,9 @@ coverage
 # Vitest
 __screenshots__/
 
+# Environment
+.env
+.env.*.local
+
 # Vite
 *.timestamp-*-*.mjs
