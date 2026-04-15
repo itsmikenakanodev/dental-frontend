@@ -2,6 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { userService } from '@/services/api'
 import type { User } from '@/types'
+import AddPatientModal from './AddPatientModal.vue'
+import PatientProfileModal from './PatientProfileModal.vue'
 
 const patients = ref<User[]>([])
 const isLoading = ref(false)
