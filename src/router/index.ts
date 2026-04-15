@@ -35,7 +35,8 @@ const router = createRouter({
         },
         {
           path: 'patients',
-          redirect: '/dashboard',
+          name: 'patients',
+          component: () => import('@/views/patients/PatientsView.vue'),
         },
         {
           path: 'settings',
