@@ -47,10 +47,8 @@ const filteredAppointments = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(a =>
-      a.patient?.firstName?.toLowerCase().includes(query) ||
-      a.patient?.lastName?.toLowerCase().includes(query) ||
-      a.dentist?.firstName?.toLowerCase().includes(query) ||
-      a.dentist?.lastName?.toLowerCase().includes(query) ||
+      a.patientName?.toLowerCase().includes(query) ||
+      a.dentistName?.toLowerCase().includes(query) ||
       a.notes?.toLowerCase().includes(query)
     )
   }
