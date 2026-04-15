@@ -12,6 +12,7 @@ export interface User {
   lastName: string
   role: UserRole
   isActive: boolean
+  phone?: string
   createdAt: string
   updatedAt: string
 }
