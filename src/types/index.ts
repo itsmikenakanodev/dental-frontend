@@ -13,6 +13,9 @@ export interface User {
   role: UserRole
   isActive: boolean
   phone?: string
+  birthDate?: string    // ISO date string (LocalDate)
+  address?: string
+  gender?: string
   createdAt: string
   updatedAt: string
 }
