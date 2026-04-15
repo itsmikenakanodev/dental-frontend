@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import type { User } from '@/types'
+
+const props = defineProps<{
+  patient: User
+}>()
 
 const emit = defineEmits(['submit', 'cancel'])
 
@@ -15,6 +20,21 @@ const form = ref({
 
 const isSubmitting = ref(false)
 const genderOptions = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
+
+// Load patient data when component mounts
+watch(() => props.patient, (patient) => {
+  if (patient) {
+    form.value = {
+      firstName: patient.firstName || '',
+      lastName: patient.lastName || '',
+      dateOfBirth: patient.birthDate || '',
+      gender: patient.gender || '',
+      phone: patient.phone || '',
+      email: patient.email || '',
+      address: patient.address || '',
+    }
+  }
+}, { immediate: true })
 
 const handleSubmit = async () => {
   if (!form.value.firstName || !form.value.lastName || !form.value.email) {
@@ -129,7 +149,7 @@ const handleSubmit = async () => {
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
-        {{ isSubmitting ? 'Saving...' : 'Save Patient Profile' }}
+        {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
       </button>
     </div>
   </form>

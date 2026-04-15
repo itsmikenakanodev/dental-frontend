@@ -98,11 +98,15 @@ export const userService = {
     throw new Error(response.data.message || 'Failed to create user')
   },
 
-  async updateUser(id: string, data: Partial<{
+  async updateUser(id: string, data: {
     firstName: string
     lastName: string
     role: string
-  }>): Promise<User> {
+    phone?: string
+    birthDate?: string
+    address?: string
+    gender?: string
+  }): Promise<User> {
     const response = await api.put<ApiResponse<User>>(`/users/${id}`, null, { params: data })
     if (response.data.data) {
       return response.data.data

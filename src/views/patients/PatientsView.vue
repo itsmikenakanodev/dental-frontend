@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { userService } from '@/services/api'
 import type { User } from '@/types'
 import AddPatientModal from './AddPatientModal.vue'
+import EditPatientModal from './EditPatientModal.vue'
 import PatientProfileModal from './PatientProfileModal.vue'
 
 const patients = ref<User[]>([])
@@ -11,6 +12,7 @@ const searchQuery = ref('')
 
 const showProfileModal = ref(false)
 const showAddModal = ref(false)
+const showEditModal = ref(false)
 const selectedPatient = ref<User | null>(null)
 
 const filteredPatients = computed(() => {
@@ -55,10 +57,11 @@ const openProfile = (patient: User) => {
 const closeModal = () => {
   showProfileModal.value = false
   showAddModal.value = false
+  showEditModal.value = false
   selectedPatient.value = null
 }
 
-const handleCreate = async (data: { firstName: string, lastName: string, email: string, phone?: string }) => {
+const handleCreate = async (data: { firstName: string, lastName: string, email: string, phone?: string, birthDate?: string, address?: string, gender?: string }) => {
   try {
     await userService.createUser({
       ...data,
@@ -70,6 +73,28 @@ const handleCreate = async (data: { firstName: string, lastName: string, email: 
   } catch (e) {
     console.error('Error creating patient:', e)
   }
+}
+
+const handleEdit = async (data: { firstName: string, lastName: string, email: string, phone?: string, birthDate?: string, address?: string, gender?: string }) => {
+  if (!selectedPatient.value) return
+  try {
+    await userService.updateUser(selectedPatient.value.userId, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      role: selectedPatient.value.role,
+    })
+    patients.value = await userService.getPatients()
+    showEditModal.value = false
+    // Update selected patient for profile modal
+    const updated = patients.value.find(p => p.userId === selectedPatient.value?.userId)
+    if (updated) selectedPatient.value = updated
+  } catch (e) {
+    console.error('Error updating patient:', e)
+  }
+}
+
+const openEditModal = () => {
+  showEditModal.value = true
 }
 
 const toggleActive = async (patient: User) => {
@@ -240,7 +265,17 @@ const toggleActive = async (patient: User) => {
             </svg>
           </button>
         </div>
-        <PatientProfileModal :patient="selectedPatient" @close="closeModal" />
+        <PatientProfileModal :patient="selectedPatient" @close="closeModal" @edit="openEditModal" />
+      </div>
+    </div>
+
+    <!-- Edit Patient Modal -->
+    <div v-if="showEditModal && selectedPatient" class="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/50 backdrop-blur-sm" @click.self="closeModal">
+      <div class="bg-surface-container-lowest rounded-xl shadow-floating w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-outline-variant/20">
+          <h2 class="text-xl font-heading font-semibold text-on-surface">Editar paciente</h2>
+        </div>
+        <EditPatientModal :patient="selectedPatient" @submit="handleEdit" @cancel="closeModal" />
       </div>
     </div>
   </div>
