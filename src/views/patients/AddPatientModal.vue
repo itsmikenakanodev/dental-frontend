@@ -6,11 +6,15 @@ const emit = defineEmits(['submit', 'cancel'])
 const form = ref({
   firstName: '',
   lastName: '',
-  email: '',
+  dateOfBirth: '',
+  gender: '',
   phone: '',
+  email: '',
+  address: '',
 })
 
 const isSubmitting = ref(false)
+const genderOptions = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
 
 const handleSubmit = async () => {
   if (!form.value.firstName || !form.value.lastName || !form.value.email) {
@@ -28,57 +32,101 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-on-surface mb-2">Nombre *</label>
-        <input
-          v-model="form.firstName"
-          type="text"
-          class="input"
-          placeholder="Juan"
-          required
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-on-surface mb-2">Apellido *</label>
-        <input
-          v-model="form.lastName"
-          type="text"
-          class="input"
-          placeholder="Pérez"
-          required
-        />
-      </div>
-    </div>
-    
+  <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+    <!-- 01 Personal Information -->
     <div>
-      <label class="block text-sm font-medium text-on-surface mb-2">Email *</label>
-      <input
-        v-model="form.email"
-        type="email"
-        class="input"
-        placeholder="juan@email.com"
-        required
-      />
+      <h3 class="text-sm font-medium text-on-surface-variant mb-4">01 Personal Information</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-on-surface mb-2">Full Name</label>
+          <div class="grid grid-cols-2 gap-4">
+            <input
+              v-model="form.firstName"
+              type="text"
+              class="input"
+              placeholder="First name"
+              required
+            />
+            <input
+              v-model="form.lastName"
+              type="text"
+              class="input"
+              placeholder="Last name"
+              required
+            />
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-2">Date of Birth</label>
+            <input
+              v-model="form.dateOfBirth"
+              type="date"
+              class="input"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-2">Gender Identity</label>
+            <select v-model="form.gender" class="input">
+              <option value="" disabled>Select gender</option>
+              <option v-for="option in genderOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
-    
+
+    <!-- 02 Contact Details -->
     <div>
-      <label class="block text-sm font-medium text-on-surface mb-2">Teléfono</label>
-      <input
-        v-model="form.phone"
-        type="tel"
-        class="input"
-        placeholder="+54 9 11 1234 5678"
-      />
+      <h3 class="text-sm font-medium text-on-surface-variant mb-4">02 Contact Details</h3>
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-2">Phone Number</label>
+            <input
+              v-model="form.phone"
+              type="tel"
+              class="input"
+              placeholder="+54 9 11 1234 5678"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-2">Email Address</label>
+            <input
+              v-model="form.email"
+              type="email"
+              class="input"
+              placeholder="email@example.com"
+              required
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-on-surface mb-2">Residential Address</label>
+          <input
+            v-model="form.address"
+            type="text"
+            class="input"
+            placeholder="Street address, city, province"
+          />
+        </div>
+      </div>
     </div>
     
+    <!-- Actions -->
     <div class="pt-4 flex justify-end gap-3 border-t border-outline-variant/20">
       <button type="button" @click="emit('cancel')" class="btn btn-ghost">
-        Cancelar
+        Cancel
       </button>
       <button type="submit" :disabled="isSubmitting || !form.firstName || !form.lastName || !form.email" class="btn btn-primary">
-        {{ isSubmitting ? 'Creando...' : 'Crear paciente' }}
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        {{ isSubmitting ? 'Saving...' : 'Save Patient Profile' }}
       </button>
     </div>
   </form>
