@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, LoginRequest } from '@/types'
 import { authService } from '@/services/api'
+import { isDemoMode, mockUsers } from '@/services/mockData'
+
+const DEMO_MODE = isDemoMode()
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -15,6 +18,16 @@ export const useAuthStore = defineStore('auth', () => {
   const isAssistant = computed(() => user.value?.role === 'ASSISTANT')
 
   const initFromStorage = () => {
+    // Demo mode: auto-login with mock admin user
+    if (DEMO_MODE) {
+      const demoUser = mockUsers.find(u => u.role === 'ADMIN')!
+      user.value = demoUser
+      token.value = 'demo-mock-token-clinical-atelier-2024'
+      localStorage.setItem('token', token.value)
+      localStorage.setItem('user', JSON.stringify(demoUser))
+      return
+    }
+
     const storedToken = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
 
@@ -30,10 +43,10 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await authService.login(credentials)
-      token.value = response.access_token
+      token.value = response.accessToken
       user.value = response.user
 
-      localStorage.setItem('token', response.access_token)
+      localStorage.setItem('token', response.accessToken)
       localStorage.setItem('user', JSON.stringify(response.user))
 
       return response
