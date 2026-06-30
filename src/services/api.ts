@@ -27,8 +27,11 @@ api.interceptors.request.use((config) => {
   if (DEMO_MODE) return config
 
   const token = localStorage.getItem('token')
-  if (token) {
+  if (token && token.split('.').length === 3) {
     config.headers.Authorization = `Bearer ${token}`
+  } else if (token) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   }
   return config
 })

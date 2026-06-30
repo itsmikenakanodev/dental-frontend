@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { appointmentService } from '@/services/api'
+import { appointmentService, userService } from '@/services/api'
 import type { Appointment } from '@/types'
+
+const router = useRouter()
 
 const authStore = useAuthStore()
 
-const stats = ref([
-  { label: 'Turnos hoy', value: 8, icon: 'calendar', color: 'primary', trend: '+2' },
-  { label: 'Pacientes', value: 156, icon: 'users', color: 'secondary', trend: '+12' },
-  { label: 'Completados', value: 124, icon: 'check', color: 'tertiary', trend: '+8' },
-  { label: 'Cancelados', value: 5, icon: 'x', color: 'error', trend: '-2' },
+const stats = ref<{ label: string; value: number; icon: string; color: string; trend?: string }[]>([
+  { label: 'Turnos hoy', value: 0, icon: 'calendar', color: 'primary', trend: '+2' },
+  { label: 'Pacientes', value: 0, icon: 'users', color: 'secondary', trend: '+12' },
+  { label: 'Completados', value: 0, icon: 'check', color: 'tertiary', trend: '+8' },
+  { label: 'Cancelados', value: 0, icon: 'x', color: 'error', trend: '-2' },
 ])
 
 const upcomingAppointments = ref<Appointment[]>([])
+const patientsCount = ref(0)
 const isLoading = ref(false)
 
 const icons: Record<string, string> = {
@@ -37,9 +41,20 @@ onMounted(async () => {
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString()
     
+    // Load appointments for today
     upcomingAppointments.value = await appointmentService.getAppointmentsByDateRange(startOfDay, endOfDay)
+    
+    // Load patients count
+    const patients = await userService.getPatients()
+    patientsCount.value = patients.length
+    
+    // Update stats with real data
+    stats.value[0].value = upcomingAppointments.value.length
+    stats.value[1].value = patientsCount.value
+    stats.value[2].value = upcomingAppointments.value.filter(a => a.status === 'COMPLETED').length
+    stats.value[3].value = upcomingAppointments.value.filter(a => a.status === 'CANCELLED').length
   } catch (error) {
-    console.error('Failed to load appointments:', error)
+    console.error('Failed to load data:', error)
   } finally {
     isLoading.value = false
   }
@@ -93,7 +108,11 @@ const getStatusColor = (status: string) => {
       <div
         v-for="stat in stats"
         :key="stat.label"
-        class="card-elevated hover:shadow-elevated transition-shadow duration-300"
+        @click="stat.label === 'Pacientes' ? router.push('/patients') : null"
+        :class="[
+          'card-elevated hover:shadow-elevated transition-shadow duration-300 cursor-pointer',
+          stat.label === 'Pacientes' ? 'hover:bg-surface-container-low' : ''
+        ]"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -162,7 +181,7 @@ const getStatusColor = (status: string) => {
             <!-- Info -->
             <div class="flex-1 min-w-0">
               <p class="font-medium text-on-surface truncate">
-                {{ appointment.patient?.firstName }} {{ appointment.patient?.lastName }}
+                {{ appointment.patientName || 'Sin paciente' }}
               </p>
               <p class="text-sm text-on-surface-variant truncate">
                 {{ appointment.notes || 'Sin notas' }}
@@ -182,7 +201,7 @@ const getStatusColor = (status: string) => {
         <h2 class="text-xl font-heading font-semibold text-on-surface mb-6">Acciones rápidas</h2>
         
         <div class="space-y-3">
-          <button class="w-full flex items-center gap-4 p-4 bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors text-left group">
+          <button @click="router.push('/appointments')" class="w-full flex items-center gap-4 p-4 bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors text-left group">
             <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -194,7 +213,7 @@ const getStatusColor = (status: string) => {
             </div>
           </button>
 
-          <button class="w-full flex items-center gap-4 p-4 bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors text-left group">
+          <button @click="router.push('/patients')" class="w-full flex items-center gap-4 p-4 bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors text-left group">
             <div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />

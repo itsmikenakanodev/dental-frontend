@@ -12,6 +12,10 @@ export interface User {
   lastName: string
   role: UserRole
   isActive: boolean
+  phone?: string
+  birthDate?: string    // ISO date string (LocalDate)
+  address?: string
+  gender?: string
   createdAt: string
   updatedAt: string
 }
@@ -24,9 +28,9 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  access_token: string
-  token_type: string
-  expires_in: number
+  accessToken: string
+  tokenType: string
+  expiresIn: number
   user: User
 }
 
@@ -34,7 +38,9 @@ export interface Appointment {
   appointmentId: string
   tenantId: string
   patientId: string
+  patientName?: string      // Nombre completo del paciente (del backend)
   dentistId: string
+  dentistName?: string      // Nombre completo del dentista (del backend)
   appointmentTime: string
   durationMinutes: number
   status: AppointmentStatus
@@ -43,6 +49,7 @@ export interface Appointment {
   reminderAttempts: number
   createdAt: string
   updatedAt: string
+  // Deprecated: el backend ahora devuelve patientName/dentistName como strings
   patient?: User
   dentist?: User
 }

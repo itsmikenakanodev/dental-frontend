@@ -43,6 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await authService.login(credentials)
+
       token.value = response.accessToken
       user.value = response.user
 
